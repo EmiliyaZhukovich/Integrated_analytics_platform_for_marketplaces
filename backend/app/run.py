@@ -7,6 +7,7 @@ import subprocess
 import sys
 
 from config import settings
+from mock_data.seed import seed_database
 
 
 async def ensure_database_exists(database_url: str, retries: int = 5, base_delay: float = 1.0) -> None:
@@ -91,6 +92,16 @@ async def bootstrap() -> None:
     await ensure_database_exists(database_url)
     # Run migrations
     await run_alembic_migrations()
+
+    # Optional: seed mock data if database is empty
+    seed_choice = os.getenv("SEED_DATA", "True").lower()
+    if seed_choice == "true":
+        print("\nSeeding mock data...")
+        await seed_database()
+        print("✓ Mock data seeded successfully!")
+    else:
+        print("\nTo seed mock data, set SEED_DATA=true in .env or run:")
+        print("  python -c 'import asyncio; from mock_data.seed import seed_database; asyncio.run(seed_database())'")
 
 
 def run_bootstrap() -> None:
